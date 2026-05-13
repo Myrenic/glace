@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Glace Dashboard",
+        "description": "Set up the Glace adaptive dashboard."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Glace is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "sidepanel_title": "Sidebar title",
+          "sidepanel_icon": "Sidebar icon"
+        }
+      }
+    }
+  }
+}

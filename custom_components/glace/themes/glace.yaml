@@ -1,0 +1,87 @@
+# ------------------------------------------------------------------
+# Glace — Home Assistant Theme
+# Apple liquid-glass inspired dark theme with translucent surfaces.
+# ------------------------------------------------------------------
+Glace:
+  # ---- Modes ----
+  modes:
+    dark:
+      # ---- Primary palette ----
+      primary-color: "#89ceff"
+      accent-color: "#4edea3"
+      info-color: "#89ceff"
+      success-color: "#4edea3"
+      warning-color: "#ffb95f"
+      error-color: "#ffb4ab"
+
+      # ---- Backgrounds ----
+      primary-background-color: "#101415"
+      secondary-background-color: "#191c1e"
+      lovelace-background: "#101415"
+
+      # ---- Text ----
+      primary-text-color: "#e0e3e5"
+      secondary-text-color: "rgba(224, 227, 229, 0.7)"
+      disabled-text-color: "rgba(224, 227, 229, 0.4)"
+      text-primary-color: "#ffffff"
+
+      # ---- Cards ----
+      ha-card-background: "rgba(255, 255, 255, 0.05)"
+      ha-card-border-radius: "16px"
+      ha-card-border-color: "rgba(255, 255, 255, 0.1)"
+      ha-card-box-shadow: "0 8px 32px rgba(0, 0, 0, 0.37)"
+      card-background-color: "rgba(255, 255, 255, 0.05)"
+
+      # ---- Surfaces ----
+      app-header-background-color: "rgba(0, 0, 0, 0.20)"
+      divider-color: "rgba(255, 255, 255, 0.1)"
+
+      # ---- Navigation ----
+      sidebar-background-color: "#101415"
+      sidebar-text-color: "#e0e3e5"
+      sidebar-selected-background-color: "rgba(137, 206, 255, 0.12)"
+      sidebar-selected-icon-color: "#89ceff"
+
+      # ---- Toggle / switch ----
+      switch-checked-color: "#4edea3"
+      switch-unchecked-color: "rgba(255, 255, 255, 0.2)"
+
+      # ---- State colors ----
+      state-active-color: "#4edea3"
+      state-inactive-color: "rgba(255, 255, 255, 0.3)"
+      state-light-active-color: "#ffb95f"
+
+      # ---- Slider ----
+      paper-slider-active-color: "#89ceff"
+      paper-slider-secondary-color: "rgba(137, 206, 255, 0.3)"
+      paper-slider-container-color: "rgba(255, 255, 255, 0.12)"
+
+      # ---- Inputs ----
+      input-fill-color: "rgba(255, 255, 255, 0.06)"
+      input-ink-color: "#e0e3e5"
+      input-label-ink-color: "rgba(224, 227, 229, 0.7)"
+
+      # ---- Dialogs / popups ----
+      mdc-theme-surface: "#1d2022"
+
+      # ---- Glace custom tokens (consumed by JS cards) ----
+      glace-surface: "rgba(255, 255, 255, 0.05)"
+      glace-surface-hover: "rgba(255, 255, 255, 0.10)"
+      glace-surface-active: "rgba(255, 255, 255, 0.14)"
+      glace-blur: "20px"
+      glace-saturate: "180%"
+      glace-border: "1px solid rgba(255, 255, 255, 0.10)"
+      glace-radius-sm: "12px"
+      glace-radius-md: "16px"
+      glace-radius-lg: "24px"
+      glace-shimmer-duration: "8s"
+      glace-transition: "all 300ms cubic-bezier(0.4, 0, 0.2, 1)"
+      glace-shadow: "0 8px 32px rgba(0, 0, 0, 0.37)"
+      glace-primary: "#89ceff"
+      glace-secondary: "#4edea3"
+      glace-tertiary: "#ffb95f"
+      glace-error: "#ffb4ab"
+      glace-on-surface: "#e0e3e5"
+      glace-on-surface-dim: "rgba(224, 227, 229, 0.7)"
+      glace-on-surface-faint: "rgba(224, 227, 229, 0.4)"
+      glace-nav-height: "80px"

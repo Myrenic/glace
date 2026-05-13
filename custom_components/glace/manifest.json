@@ -1,0 +1,12 @@
+{
+  "domain": "glace",
+  "name": "Glace",
+  "documentation": "https://github.com/your-username/ha_theme",
+  "issue_tracker": "https://github.com/your-username/ha_theme/issues",
+  "dependencies": ["lovelace", "http", "frontend"],
+  "codeowners": [],
+  "config_flow": true,
+  "version": "0.1.0",
+  "iot_class": "calculated",
+  "homeassistant": "2025.4.0"
+}
