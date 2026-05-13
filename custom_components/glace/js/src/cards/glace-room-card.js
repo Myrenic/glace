@@ -117,47 +117,8 @@ class GlaceRoomCard extends LitElement {
   }
 
   _handleTap() {
-    if (!this.hass || !this.room) return;
-
-    // Find the first entity in this area to show more-info
-    const states = this.hass.states;
-    const entities = this.hass.entities || {};
-    const devices = this.hass.devices || {};
-
-    for (const [entityId, entry] of Object.entries(entities)) {
-      const areaId =
-        entry.area_id ||
-        (entry.device_id && devices[entry.device_id]?.area_id);
-      if (areaId === this.room.id) {
-        // Fire a more-info event for this area's first light or entity
-        const domain = entityId.split(".")[0];
-        if (["light", "switch", "climate", "media_player"].includes(domain)) {
-          const event = new CustomEvent("hass-more-info", {
-            bubbles: true,
-            composed: true,
-            detail: { entityId },
-          });
-          this.dispatchEvent(event);
-          return;
-        }
-      }
-    }
-
-    // Fallback: open any entity in the area
-    for (const [entityId, entry] of Object.entries(entities)) {
-      const areaId =
-        entry.area_id ||
-        (entry.device_id && devices[entry.device_id]?.area_id);
-      if (areaId === this.room.id) {
-        const event = new CustomEvent("hass-more-info", {
-          bubbles: true,
-          composed: true,
-          detail: { entityId },
-        });
-        this.dispatchEvent(event);
-        return;
-      }
-    }
+    // Navigation is handled by the parent homepage card via @click
+    // This method is kept for direct usage outside the homepage
   }
 
   render() {
