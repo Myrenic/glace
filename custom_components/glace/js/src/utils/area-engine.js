@@ -73,7 +73,7 @@ export function filterByDomain(areaMap, domain) {
   for (const area of Object.values(areaMap)) {
     for (const entity of area.entities) {
       if (entity.domain === domain) {
-        result.push({ ...entity, area_name: area.name });
+      result.push({ ...entity, area_id: area.id, area_name: area.name });
       }
     }
   }

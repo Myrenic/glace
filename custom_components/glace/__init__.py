@@ -2,7 +2,6 @@
 
 import logging
 import os
-import json
 from collections import OrderedDict
 from typing import Any, Mapping
 
@@ -21,6 +20,79 @@ from .load_dashboard import load_dashboard
 from .load_plugins import load_plugins
 
 _LOGGER = logging.getLogger(__name__)
+EXCLUDED_AREAS = "excluded_areas"
+EXCLUDED_ENTITIES = "excluded_entities"
+
+
+def _parse_option_list(value: Any) -> list[str]:
+    """Parse a comma/newline-separated options value into a clean string list."""
+    if isinstance(value, list):
+        raw_items = value
+    elif isinstance(value, str):
+        raw_items = value.replace("\n", ",").split(",")
+    else:
+        return []
+
+    values: list[str] = []
+    seen: set[str] = set()
+    for item in raw_items:
+        normalized = str(item).strip()
+        if not normalized or normalized in seen:
+            continue
+        values.append(normalized)
+        seen.add(normalized)
+    return values
+
+
+def _resolve_excluded_areas(
+    area_registry: ar.AreaRegistry, configured_values: list[str]
+) -> list[str]:
+    """Resolve configured area names or ids into canonical area ids."""
+    lookup: dict[str, str] = {}
+    for area in area_registry.async_list_areas():
+        lookup[area.id.casefold()] = area.id
+        lookup[area.name.casefold()] = area.id
+        for alias in getattr(area, "aliases", []) or []:
+            lookup[str(alias).casefold()] = area.id
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for value in configured_values:
+        area_id = lookup.get(value.casefold(), value)
+        if area_id in seen:
+            continue
+        resolved.append(area_id)
+        seen.add(area_id)
+    return resolved
+
+
+def _merge_user_config(
+    hass: HomeAssistant, area_registry: ar.AreaRegistry | None = None
+) -> dict[str, Any]:
+    """Merge file-backed config with options-flow exclusions."""
+    merged: dict[str, Any] = dict(hass.data[DOMAIN].get("config", {}) or {})
+    options = hass.data[DOMAIN].get("options", {}) or {}
+
+    configured_entities = _parse_option_list(options.get(EXCLUDED_ENTITIES))
+    if configured_entities:
+        merged[EXCLUDED_ENTITIES] = [
+            *dict.fromkeys(
+                [*(merged.get(EXCLUDED_ENTITIES) or []), *configured_entities]
+            )
+        ]
+
+    configured_areas = _parse_option_list(options.get(EXCLUDED_AREAS))
+    if configured_areas:
+        resolved_areas = (
+            _resolve_excluded_areas(area_registry, configured_areas)
+            if area_registry is not None
+            else configured_areas
+        )
+        merged[EXCLUDED_AREAS] = [
+            *dict.fromkeys([*(merged.get(EXCLUDED_AREAS) or []), *resolved_areas])
+        ]
+
+    return merged
 
 
 def _read_yaml(path: str):
@@ -33,6 +105,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Glace integration."""
     hass.data[DOMAIN] = {
         "config": {},
+        "options": {},
     }
 
     websocket_api.async_register_command(hass, ws_get_configuration)
@@ -57,6 +130,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass, config_entry):
     """Set up Glace from a config entry."""
     load_dashboard(hass, config_entry)
+    hass.data[DOMAIN]["options"] = dict(config_entry.options)
+    config_entry.async_on_unload(config_entry.add_update_listener(_async_reload_entry))
 
     # Load user overrides from glace/config.yaml if present
     config_path = hass.config.path("glace/config.yaml")
@@ -74,6 +149,11 @@ async def async_setup_entry(hass, config_entry):
 async def async_unload_entry(hass, config_entry):
     """Unload a Glace config entry."""
     return True
+
+
+async def _async_reload_entry(hass: HomeAssistant, config_entry) -> None:
+    """Reload Glace when options change."""
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +174,7 @@ async def ws_get_configuration(
     area_registry = ar.async_get(hass)
     entity_registry = er.async_get(hass)
     device_registry = dr.async_get(hass)
+    user_config = _merge_user_config(hass, area_registry)
 
     areas_out = OrderedDict()
     for area in area_registry.async_list_areas():
@@ -134,7 +215,7 @@ async def ws_get_configuration(
             "entities": entities_out,
             "devices": devices_out,
             "installed_version": VERSION,
-            "user_config": hass.data[DOMAIN].get("config", {}),
+            "user_config": user_config,
         },
     )
 
@@ -149,9 +230,10 @@ async def ws_get_glace_config(
     msg: Mapping[str, Any],
 ) -> None:
     """Return the current Glace user config."""
+    area_registry = ar.async_get(hass)
     connection.send_result(
         msg["id"],
-        hass.data[DOMAIN].get("config", {}),
+        _merge_user_config(hass, area_registry),
     )
 
 

@@ -6,17 +6,17 @@ views:
     cards:
       - type: custom:glace-homepage-card
         mode: home
-  - title: Rooms
-    icon: mdi:floor-plan
-    path: rooms
+  - title: Lighting
+    icon: mdi:lightbulb-group-outline
+    path: lighting
     type: custom:glace-layout
     cards:
       - type: custom:glace-homepage-card
-        mode: rooms
-  - title: Focus
-    icon: mdi:creation-outline
-    path: focus
+        mode: lighting
+  - title: Switches
+    icon: mdi:toggle-switch-outline
+    path: switches
     type: custom:glace-layout
     cards:
       - type: custom:glace-homepage-card
-        mode: focus
+        mode: switches

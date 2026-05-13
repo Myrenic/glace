@@ -9,9 +9,9 @@ Glace automatically discovers your Home Assistant Areas and entities, then build
 - **Adaptive homepage** — sections appear and disappear based on live entity state
 - **Area-aware rooms** — rooms are built automatically from HA Areas
 - **Liquid-glass design** — translucent cards, backdrop blur, subtle shimmer, iOS-inspired navigation
-- **Multi-page shell** — dedicated Home, Rooms, and Focus views with shared liquid-glass chrome
+- **Multi-page shell** — dedicated Home, Lighting, and Switches views with shared liquid-glass chrome
 - **Zero-config defaults** — works out of the box with sensible defaults from HA metadata
-- **Customizable** — per-room overrides plus simple global or per-page backgrounds through `glace/config.yaml`
+- **Customizable** — simple global or per-page backgrounds plus room/entity exclusions through Glace options or `glace/config.yaml`
 - **HACS installable** — install and update via HACS
 
 ## Installation
@@ -46,12 +46,12 @@ background:
 pages:
   home:
     title: Home
-  rooms:
-    title: Rooms
-    subtitle: Every area at a glance
-  focus:
-    title: Focus
-    subtitle: Live activity and energy
+  lighting:
+    title: Lighting
+    subtitle: Lights and scenes
+  switches:
+    title: Switches
+    subtitle: Useful switches only
 ```
 
 Supported background formats:
@@ -59,6 +59,11 @@ Supported background formats:
 - `preset: obsidian | aurora | dawn | studio`
 - `image: /local/...` with optional `overlay`, `position`, `size`, and `attachment`
 - `css: "<full CSS background-image value>"`
+
+You can also hide clutter through the Glace integration options:
+
+- **Hidden rooms** — comma-separated room names or area IDs
+- **Hidden entities** — comma-separated entity IDs
 
 ## License
 

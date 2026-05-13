@@ -280,6 +280,7 @@ class GlaceLayout extends LitElement {
       page.id,
       this._config?.background
     );
+    const showPageChrome = page.id !== "home";
 
     return html`
       <div class="shell">
@@ -289,16 +290,20 @@ class GlaceLayout extends LitElement {
         <div class="backdrop-vignette"></div>
 
         <div class="layout-wrapper">
-          <header class="page-chrome">
-            <div class="page-chip">
-              <ha-icon icon=${page.icon}></ha-icon>
-              <span>Glace</span>
-            </div>
-            <h1 class="page-title">${page.title}</h1>
-            ${page.subtitle
-              ? html`<p class="page-subtitle">${page.subtitle}</p>`
-              : ""}
-          </header>
+          ${showPageChrome
+            ? html`
+                <header class="page-chrome">
+                  <div class="page-chip">
+                    <ha-icon icon=${page.icon}></ha-icon>
+                    <span>Glace</span>
+                  </div>
+                  <h1 class="page-title">${page.title}</h1>
+                  ${page.subtitle
+                    ? html`<p class="page-subtitle">${page.subtitle}</p>`
+                    : ""}
+                </header>
+              `
+            : ""}
 
           <div class="cards-slot"></div>
         </div>

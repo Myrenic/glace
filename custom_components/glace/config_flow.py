@@ -7,6 +7,8 @@ from homeassistant.core import callback
 
 SIDEPANEL_TITLE = "sidepanel_title"
 SIDEPANEL_ICON = "sidepanel_icon"
+EXCLUDED_AREAS = "excluded_areas"
+EXCLUDED_ENTITIES = "excluded_entities"
 
 
 @config_entries.HANDLERS.register("glace")
@@ -24,7 +26,7 @@ class GlaceConfigFlow(config_entries.ConfigFlow):
         return GlaceOptionsFlow(config_entry)
 
 
-class GlaceOptionsFlow(config_entries.OptionsFlow):
+class GlaceOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
     """Handle Glace options."""
 
     def __init__(self, config_entry):
@@ -44,6 +46,14 @@ class GlaceOptionsFlow(config_entries.OptionsFlow):
                 default=self.config_entry.options.get(
                     "sidepanel_icon", "mdi:ice-cream"
                 ),
+            ): str,
+            vol.Optional(
+                EXCLUDED_AREAS,
+                default=self.config_entry.options.get(EXCLUDED_AREAS, ""),
+            ): str,
+            vol.Optional(
+                EXCLUDED_ENTITIES,
+                default=self.config_entry.options.get(EXCLUDED_ENTITIES, ""),
             ): str,
         }
 
