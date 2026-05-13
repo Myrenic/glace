@@ -3,9 +3,6 @@ views:
     icon: mdi:home-variant
     path: home
     type: custom:glace-layout
-    view_id: home
-    view_title: Home
-    view_subtitle: Adaptive overview of your home
     cards:
       - type: custom:glace-homepage-card
         mode: home
@@ -13,9 +10,6 @@ views:
     icon: mdi:floor-plan
     path: rooms
     type: custom:glace-layout
-    view_id: rooms
-    view_title: Rooms
-    view_subtitle: Browse every area with one-tap drill-down
     cards:
       - type: custom:glace-homepage-card
         mode: rooms
@@ -23,9 +17,6 @@ views:
     icon: mdi:creation-outline
     path: focus
     type: custom:glace-layout
-    view_id: focus
-    view_title: Focus
-    view_subtitle: Live activity, media, and energy in one place
     cards:
       - type: custom:glace-homepage-card
         mode: focus

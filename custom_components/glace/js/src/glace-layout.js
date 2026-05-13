@@ -241,7 +241,7 @@ class GlaceLayout extends LitElement {
   }
 
   _getViewId() {
-    return this._config?.view_id || "home";
+    return this._config?.path || "home";
   }
 
   _getPageMeta() {
@@ -250,9 +250,9 @@ class GlaceLayout extends LitElement {
 
     return {
       ...configPage,
-      title: this._config?.view_title || configPage.title,
-      subtitle: this._config?.view_subtitle || configPage.subtitle,
-      icon: this._config?.view_icon || configPage.icon,
+      title: configPage.title || this._config?.title || viewId,
+      subtitle: configPage.subtitle,
+      icon: this._config?.icon || configPage.icon,
     };
   }
 
