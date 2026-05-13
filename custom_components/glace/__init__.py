@@ -12,12 +12,21 @@ import yaml
 from homeassistant.components import websocket_api
 from homeassistant.config import ConfigType
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry as ar
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, VERSION
 from .load_dashboard import load_dashboard
 from .load_plugins import load_plugins
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _read_yaml(path: str):
+    """Read and parse a YAML file (runs in executor)."""
+    with open(path, encoding="utf-8") as fh:
+        return yaml.safe_load(fh)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -32,15 +41,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     await load_plugins(hass, DOMAIN)
 
-    # Register Glace theme
+    # Register Glace theme (non-blocking)
     theme_path = os.path.join(os.path.dirname(__file__), "themes", "glace.yaml")
-    if os.path.exists(theme_path):
+    if await hass.async_add_executor_job(os.path.exists, theme_path):
         try:
-            with open(theme_path, encoding="utf-8") as f:
-                theme_data = yaml.safe_load(f)
+            theme_data = await hass.async_add_executor_job(_read_yaml, theme_path)
             if theme_data:
-                hass.data["frontend_themes"] = hass.data.get("frontend_themes", {})
-                hass.data["frontend_themes"].update(theme_data)
+                hass.data.setdefault("frontend_themes", {}).update(theme_data)
         except Exception:
             _LOGGER.exception("Failed to load Glace theme")
 
@@ -54,11 +61,12 @@ async def async_setup_entry(hass, config_entry):
     # Load user overrides from glace/config.yaml if present
     config_path = hass.config.path("glace/config.yaml")
     if await hass.async_add_executor_job(os.path.exists, config_path):
-        data = await hass.async_add_executor_job(
-            lambda: yaml.safe_load(open(config_path, encoding="utf-8"))
-        )
-        if data:
-            hass.data[DOMAIN]["config"] = data
+        try:
+            data = await hass.async_add_executor_job(_read_yaml, config_path)
+            if data:
+                hass.data[DOMAIN]["config"] = data
+        except Exception:
+            _LOGGER.warning("Failed to load Glace user config from %s", config_path)
 
     return True
 
@@ -83,17 +91,17 @@ async def ws_get_configuration(
     msg: Mapping[str, Any],
 ) -> None:
     """Return areas, devices, and entities for the Glace frontend."""
-    area_registry = hass.helpers.area_registry.async_get(hass)
-    entity_registry = hass.helpers.entity_registry.async_get(hass)
-    device_registry = hass.helpers.device_registry.async_get(hass)
+    area_registry = ar.async_get(hass)
+    entity_registry = er.async_get(hass)
+    device_registry = dr.async_get(hass)
 
     areas_out = OrderedDict()
     for area in area_registry.async_list_areas():
         areas_out[area.id] = {
             "name": area.name,
-            "icon": area.icon,
-            "picture": area.picture,
-            "aliases": list(area.aliases) if area.aliases else [],
+            "icon": getattr(area, "icon", None),
+            "picture": getattr(area, "picture", None),
+            "aliases": list(area.aliases) if getattr(area, "aliases", None) else [],
         }
 
     entities_out = OrderedDict()
@@ -104,7 +112,7 @@ async def ws_get_configuration(
             "name": entry.name or entry.original_name,
             "platform": entry.platform,
             "domain": entry.domain,
-            "disabled": entry.disabled,
+            "disabled": entry.disabled_by is not None,
             "hidden": entry.hidden_by is not None,
             "icon": entry.icon or entry.original_icon,
         }

@@ -3,7 +3,6 @@
 import logging
 
 from homeassistant.components.lovelace.dashboard import LovelaceYAML
-from homeassistant.components.lovelace import _register_panel
 
 from .const import DOMAIN
 
@@ -25,7 +24,12 @@ def load_dashboard(hass, config_entry):
         "require_admin": False,
     }
 
-    hass.data["lovelace"].dashboards[dashboard_url] = LovelaceYAML(
-        hass, dashboard_url, dashboard_config
-    )
-    _register_panel(hass, dashboard_url, "yaml", dashboard_config, False)
+    try:
+        from homeassistant.components.lovelace import _register_panel
+
+        hass.data["lovelace"].dashboards[dashboard_url] = LovelaceYAML(
+            hass, dashboard_url, dashboard_config
+        )
+        _register_panel(hass, dashboard_url, "yaml", dashboard_config, False)
+    except Exception:
+        _LOGGER.exception("Failed to register Glace dashboard panel")
