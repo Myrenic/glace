@@ -18,15 +18,15 @@ export const glassStyles = css`
     --glace-indigo: #5e5ce6;
 
     /* ── Glass Surface Tokens ── */
-    --glace-glass-bg: rgba(255, 255, 255, 0.07);
-    --glace-glass-bg-hover: rgba(255, 255, 255, 0.11);
-    --glace-glass-bg-active: rgba(255, 255, 255, 0.15);
-    --glace-glass-blur: 40px;
-    --glace-glass-saturate: 1.8;
-    --glace-glass-brightness: 1.12;
-    --glace-glass-radius: 20px;
-    --glace-glass-radius-sm: 14px;
-    --glace-glass-radius-xs: 10px;
+    --glace-glass-bg: rgba(255, 255, 255, 0.08);
+    --glace-glass-bg-hover: rgba(255, 255, 255, 0.12);
+    --glace-glass-bg-active: rgba(255, 255, 255, 0.16);
+    --glace-glass-blur: 32px;
+    --glace-glass-saturate: 1.65;
+    --glace-glass-brightness: 1.08;
+    --glace-glass-radius: 24px;
+    --glace-glass-radius-sm: 18px;
+    --glace-glass-radius-xs: 12px;
 
     /* ── Text ── */
     --glace-text-primary: rgba(255, 255, 255, 0.92);
@@ -34,9 +34,9 @@ export const glassStyles = css`
     --glace-text-tertiary: rgba(255, 255, 255, 0.30);
 
     /* ── Elevation ── */
-    --glace-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --glace-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
-    --glace-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.14), 0 2px 10px rgba(0, 0, 0, 0.08);
+    --glace-shadow-sm: 0 10px 24px rgba(2, 5, 14, 0.12);
+    --glace-shadow-md: 0 16px 40px rgba(2, 5, 14, 0.18), 0 4px 12px rgba(2, 5, 14, 0.10);
+    --glace-shadow-lg: 0 28px 80px rgba(2, 5, 14, 0.26), 0 10px 28px rgba(2, 5, 14, 0.12);
 
     /* ── Motion ── */
     --glace-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -57,24 +57,32 @@ export const glassStyles = css`
      ═══════════════════════════════════════════ */
 
   .glass {
-    background: var(--glace-glass-bg);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.08) 42%,
+        rgba(255, 255, 255, 0.04) 100%
+      ),
+      var(--glace-glass-bg);
     backdrop-filter: blur(var(--glace-glass-blur))
       saturate(var(--glace-glass-saturate))
       brightness(var(--glace-glass-brightness));
     -webkit-backdrop-filter: blur(var(--glace-glass-blur))
       saturate(var(--glace-glass-saturate))
       brightness(var(--glace-glass-brightness));
-    border: 0.5px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: var(--glace-glass-radius);
     box-shadow:
-      inset 0 0.5px 0 0 rgba(255, 255, 255, 0.20),
-      inset 0 -0.5px 0 0 rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.16),
+      inset 0 -1px 0 0 rgba(255, 255, 255, 0.02),
       var(--glace-shadow-md);
     position: relative;
     overflow: hidden;
     transition: transform 0.35s var(--glace-spring),
       background 0.2s var(--glace-ease),
-      box-shadow 0.3s var(--glace-ease);
+      box-shadow 0.3s var(--glace-ease),
+      border-color 0.3s var(--glace-ease);
   }
 
   /* Top specular highlight — key liquid glass effect */
@@ -82,15 +90,15 @@ export const glassStyles = css`
     content: "";
     position: absolute;
     top: 0;
-    left: 8%;
-    right: 8%;
-    height: 1px;
+    left: 7%;
+    right: 7%;
+    height: 1.5px;
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.35) 20%,
-      rgba(255, 255, 255, 0.5) 50%,
-      rgba(255, 255, 255, 0.35) 80%,
+      rgba(255, 255, 255, 0.18) 18%,
+      rgba(255, 255, 255, 0.42) 50%,
+      rgba(255, 255, 255, 0.18) 82%,
       transparent
     );
     pointer-events: none;
@@ -98,19 +106,65 @@ export const glassStyles = css`
     border-radius: 1px;
   }
 
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: auto -10% -25% auto;
+    width: 72%;
+    height: 68%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.02) 48%,
+      transparent 70%
+    );
+    opacity: 0.55;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .glass:hover {
+    transform: translateY(-2px);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.18) 0%,
+        rgba(255, 255, 255, 0.10) 42%,
+        rgba(255, 255, 255, 0.05) 100%
+      ),
+      var(--glace-glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.13);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+      inset 0 -1px 0 0 rgba(255, 255, 255, 0.03),
+      var(--glace-shadow-lg);
+  }
+
   .glass:active {
     transform: scale(0.975);
-    background: var(--glace-glass-bg-active);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.20) 0%,
+        rgba(255, 255, 255, 0.10) 40%,
+        rgba(255, 255, 255, 0.06) 100%
+      ),
+      var(--glace-glass-bg-active);
   }
 
   /* Subtle variant — less prominent glass */
   .glass-subtle {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
-    border: 0.5px solid rgba(255, 255, 255, 0.10);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.10) 0%,
+        rgba(255, 255, 255, 0.04) 100%
+      );
+    backdrop-filter: blur(24px) saturate(1.35);
+    -webkit-backdrop-filter: blur(24px) saturate(1.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--glace-glass-radius-sm);
-    box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.12),
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
       var(--glace-shadow-sm);
     position: relative;
     overflow: hidden;
@@ -296,11 +350,16 @@ export const glassStyles = css`
     gap: 6px;
     padding: 8px 14px;
     border-radius: 100px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border: 0.5px solid rgba(255, 255, 255, 0.14);
-    box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.12);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.08) 100%
+      );
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
     color: var(--glace-text-primary);
     font-size: 14px;
     font-weight: 500;
@@ -312,7 +371,12 @@ export const glassStyles = css`
 
   .pill:active {
     transform: scale(0.94);
-    background: rgba(255, 255, 255, 0.14);
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.20) 0%,
+        rgba(255, 255, 255, 0.10) 100%
+      );
   }
 
   .pill ha-icon {

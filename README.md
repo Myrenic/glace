@@ -9,8 +9,9 @@ Glace automatically discovers your Home Assistant Areas and entities, then build
 - **Adaptive homepage** — sections appear and disappear based on live entity state
 - **Area-aware rooms** — rooms are built automatically from HA Areas
 - **Liquid-glass design** — translucent cards, backdrop blur, subtle shimmer, iOS-inspired navigation
+- **Multi-page shell** — dedicated Home, Rooms, and Focus views with shared liquid-glass chrome
 - **Zero-config defaults** — works out of the box with sensible defaults from HA metadata
-- **Customizable** — per-room overrides for favorites, ordering, visibility, quick actions
+- **Customizable** — per-room overrides plus simple global or per-page backgrounds through `glace/config.yaml`
 - **HACS installable** — install and update via HACS
 
 ## Installation
@@ -24,6 +25,40 @@ Glace automatically discovers your Home Assistant Areas and entities, then build
 
 - Home Assistant 2025.4.0 or newer
 - HACS installed
+
+## Background customization
+
+Glace keeps working with no config, but you can now set a single dashboard background or override individual pages by editing `config/glace/config.yaml`.
+
+```yaml
+background:
+  global:
+    preset: aurora
+  pages:
+    rooms:
+      image: /local/glace/rooms-wallpaper.jpg
+    focus:
+      css: >
+        radial-gradient(circle at 18% 18%, rgba(255, 191, 117, 0.24), transparent 32%),
+        radial-gradient(circle at 82% 18%, rgba(117, 196, 255, 0.18), transparent 32%),
+        linear-gradient(160deg, #120d1e 0%, #131d31 52%, #06070c 100%)
+
+pages:
+  home:
+    title: Home
+  rooms:
+    title: Rooms
+    subtitle: Every area at a glance
+  focus:
+    title: Focus
+    subtitle: Live activity and energy
+```
+
+Supported background formats:
+
+- `preset: obsidian | aurora | dawn | studio`
+- `image: /local/...` with optional `overlay`, `position`, `size`, and `attachment`
+- `css: "<full CSS background-image value>"`
 
 ## License
 

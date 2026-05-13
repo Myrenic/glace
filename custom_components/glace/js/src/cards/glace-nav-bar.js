@@ -11,6 +11,7 @@ class GlaceNavBar extends LitElement {
     return {
       hass: { type: Object },
       active: { type: String },
+      tabs: { type: Array },
     };
   }
 
@@ -28,16 +29,21 @@ class GlaceNavBar extends LitElement {
         }
 
         nav {
-          background: rgba(20, 20, 28, 0.65);
-          backdrop-filter: blur(40px) saturate(1.8);
-          -webkit-backdrop-filter: blur(40px) saturate(1.8);
-          border-top: 0.5px solid rgba(255, 255, 255, 0.10);
+          margin: 0 14px calc(10px + env(safe-area-inset-bottom, 0px));
+          border-radius: 28px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.08) 48%, rgba(255, 255, 255, 0.04) 100%);
+          backdrop-filter: blur(32px) saturate(1.65);
+          -webkit-backdrop-filter: blur(32px) saturate(1.65);
+          border: 1px solid rgba(255, 255, 255, 0.10);
           display: flex;
           justify-content: space-around;
           align-items: center;
-          padding: 0 24px;
-          height: var(--glace-nav-height, 82px);
-          padding-bottom: env(safe-area-inset-bottom, 0px);
+          padding: 8px 12px;
+          min-height: var(--glace-nav-height, 82px);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            0 20px 60px rgba(2, 5, 12, 0.32);
         }
 
         .tab {
@@ -53,6 +59,7 @@ class GlaceNavBar extends LitElement {
           background: transparent;
           border: none;
           color: var(--glace-text-tertiary);
+          min-width: 84px;
         }
 
         .tab:active {
@@ -61,9 +68,11 @@ class GlaceNavBar extends LitElement {
 
         .tab.active {
           color: var(--glace-text-primary);
-          background: rgba(255, 255, 255, 0.10);
-          border: 0.5px solid rgba(255, 255, 255, 0.08);
-          box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.10);
+          background: rgba(255, 255, 255, 0.12);
+          border: 0.5px solid rgba(255, 255, 255, 0.10);
+          box-shadow:
+            inset 0 0.5px 0 0 rgba(255, 255, 255, 0.12),
+            0 10px 24px rgba(4, 7, 18, 0.18);
         }
 
         .tab ha-icon {
@@ -83,23 +92,23 @@ class GlaceNavBar extends LitElement {
   constructor() {
     super();
     this.active = "home";
+    this.tabs = [];
   }
 
   setConfig(config) {
     if (config.active) this.active = config.active;
+    if (config.tabs) this.tabs = config.tabs;
   }
 
   _navigate(path) {
+    if (!path) return;
     window.history.pushState(null, "", `/glace-dashboard/${path}`);
     window.dispatchEvent(new Event("location-changed"));
   }
 
   render() {
-    const tabs = [
-      { id: "home", icon: "mdi:home", label: "Home", path: "home" },
-      { id: "rooms", icon: "mdi:door", label: "Rooms", path: "rooms" },
-      { id: "settings", icon: "mdi:cog", label: "Settings", path: "settings" },
-    ];
+    const tabs = this.tabs || [];
+    if (tabs.length < 2) return html``;
 
     return html`
       <nav>
@@ -107,10 +116,10 @@ class GlaceNavBar extends LitElement {
           (tab) => html`
             <button
               class="tab ${this.active === tab.id ? "active" : ""}"
-              @click=${() => this._navigate(tab.path)}
+              @click=${() => this._navigate(tab.path || tab.id)}
             >
               <ha-icon icon=${tab.icon}></ha-icon>
-              <span class="tab-label">${tab.label}</span>
+              <span class="tab-label">${tab.title || tab.label || tab.id}</span>
             </button>
           `
         )}

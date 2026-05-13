@@ -23,6 +23,7 @@ class GlaceHomepageCard extends LitElement {
       _glaceData: { type: Object },
       _time: { type: String },
       _selectedArea: { type: String },
+      mode: { type: String },
     };
   }
 
@@ -258,6 +259,84 @@ class GlaceHomepageCard extends LitElement {
           white-space: nowrap;
           margin-left: 4px;
         }
+
+        .page-hero {
+          padding: 4px 4px 8px;
+        }
+
+        .hero-kicker {
+          margin: 0 0 10px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.58);
+        }
+
+        .hero-title {
+          margin: 0;
+          font-size: clamp(2rem, 9vw, 3.4rem);
+          font-weight: 700;
+          line-height: 0.98;
+          letter-spacing: -0.05em;
+        }
+
+        .hero-copy {
+          margin: 10px 0 0;
+          color: rgba(255, 255, 255, 0.62);
+          font-size: 14px;
+          line-height: 1.5;
+          max-width: 34rem;
+        }
+
+        .hero-metrics {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+          gap: 10px;
+          margin-top: 18px;
+        }
+
+        .metric {
+          padding: 14px 16px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 0.5px solid rgba(255, 255, 255, 0.08);
+          box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.10);
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .metric-value {
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          color: var(--glace-text-primary);
+        }
+
+        .metric-label {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.52);
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+
+        .ambient-empty {
+          padding: 18px 18px 20px;
+        }
+
+        .ambient-empty h3 {
+          margin: 0 0 4px;
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        .ambient-empty p {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 14px;
+          line-height: 1.5;
+        }
       `,
     ];
   }
@@ -268,11 +347,13 @@ class GlaceHomepageCard extends LitElement {
     this._time = getTimeString();
     this._timer = null;
     this._selectedArea = null;
+    this.mode = "home";
     this._onHashChange = this._onHashChange.bind(this);
   }
 
   setConfig(config) {
     this._config = config;
+    this.mode = config.mode || "home";
   }
 
   connectedCallback() {
@@ -436,11 +517,52 @@ class GlaceHomepageCard extends LitElement {
     return state.state;
   }
 
+  _supportsAreaDrilldown() {
+    return this.mode !== "focus";
+  }
+
+  _renderPageHero({ kicker, title, copy, metrics = [] }) {
+    return html`
+      <section class="page-hero animate-in">
+        <p class="hero-kicker">${kicker}</p>
+        <h2 class="hero-title">${title}</h2>
+        ${copy ? html`<p class="hero-copy">${copy}</p>` : ""}
+        ${metrics.length
+          ? html`
+              <div class="hero-metrics">
+                ${metrics.map(
+                  (metric) => html`
+                    <div class="metric">
+                      <span class="metric-value">${metric.value}</span>
+                      <span class="metric-label">${metric.label}</span>
+                    </div>
+                  `
+                )}
+              </div>
+            `
+          : ""}
+      </section>
+    `;
+  }
+
+  _renderEmptyState(title, copy) {
+    return html`
+      <div class="glass ambient-empty">
+        <h3>${title}</h3>
+        <p>${copy}</p>
+      </div>
+    `;
+  }
+
   // ── Render ──
 
   render() {
     if (!this.hass) return html``;
-    if (this._selectedArea) return this._renderRoomDetail();
+    if (this._selectedArea && this._supportsAreaDrilldown()) {
+      return this._renderRoomDetail();
+    }
+    if (this.mode === "rooms") return this._renderRoomsPage();
+    if (this.mode === "focus") return this._renderFocusPage();
     return this._renderOverview();
   }
 
@@ -452,10 +574,16 @@ class GlaceHomepageCard extends LitElement {
     const roomSummaries = areaIds.map((id) => buildRoomSummary(id, areaMap)).filter(Boolean);
 
     return html`
-      <div class="welcome">
-        <p class="greeting">${getGreeting()}</p>
-        <p class="time">${this._time}</p>
-      </div>
+      ${this._renderPageHero({
+        kicker: "Adaptive",
+        title: getGreeting(),
+        copy: `${this._time} • ${roomSummaries.length} room${roomSummaries.length !== 1 ? "s" : ""} ready for quick control.`,
+        metrics: [
+          { label: "Rooms", value: roomSummaries.length },
+          { label: "Lights on", value: activeLights.length },
+          { label: "Live media", value: activeMedia.length },
+        ],
+      })}
 
       ${activeLights.length > 0 ? html`
         <div class="quick-actions">
@@ -498,6 +626,117 @@ class GlaceHomepageCard extends LitElement {
           </div>
         </div>
       ` : ""}
+    `;
+  }
+
+  _renderRoomsPage() {
+    const areaMap = this._getAreaMap();
+    const roomSummaries = Object.keys(areaMap)
+      .map((id) => buildRoomSummary(id, areaMap))
+      .filter(Boolean);
+    const activeRooms = roomSummaries.filter(
+      (room) => room.lightsOn > 0 || room.mediaActive > 0
+    ).length;
+    const totalDevices = roomSummaries.reduce(
+      (count, room) => count + room.entityCount,
+      0
+    );
+
+    return html`
+      ${this._renderPageHero({
+        kicker: "Spaces",
+        title: "Rooms",
+        copy: "Jump into any area for grouped controls, live state, and fast entity actions.",
+        metrics: [
+          { label: "Areas", value: roomSummaries.length },
+          { label: "Active", value: activeRooms },
+          { label: "Devices", value: totalDevices },
+        ],
+      })}
+
+      ${roomSummaries.length > 0
+        ? html`
+            <div class="section">
+              <p class="section-label">All rooms</p>
+              <div class="rooms-grid">
+                ${roomSummaries.map(
+                  (room) => html`
+                    <glace-room-card
+                      .hass=${this.hass}
+                      .room=${room}
+                      @click=${() => this._selectArea(room.id)}
+                    ></glace-room-card>
+                  `
+                )}
+              </div>
+            </div>
+          `
+        : this._renderEmptyState(
+            "No rooms available",
+            "Glace will populate this page automatically once your Home Assistant areas are available."
+          )}
+    `;
+  }
+
+  _renderFocusPage() {
+    const areaMap = this._getAreaMap();
+    const activeLights = getActiveLights(areaMap);
+    const activeMedia = getActiveMedia(areaMap);
+    const liveRooms = Object.values(areaMap).filter((area) =>
+      area.entities.some((entity) => this._isActive(entity.state))
+    ).length;
+
+    return html`
+      ${this._renderPageHero({
+        kicker: "Right now",
+        title: "Focus",
+        copy: "A calmer live view for everything currently demanding attention.",
+        metrics: [
+          { label: "Lights on", value: activeLights.length },
+          { label: "Playing", value: activeMedia.length },
+          { label: "Active rooms", value: liveRooms },
+        ],
+      })}
+
+      <div class="section">
+        <p class="section-label">Energy</p>
+        <glace-energy-card .hass=${this.hass}></glace-energy-card>
+      </div>
+
+      ${activeLights.length > 0
+        ? html`
+            <div class="section">
+              <p class="section-label">Lighting</p>
+              <glace-light-summary
+                .hass=${this.hass}
+                .lights=${activeLights}
+              ></glace-light-summary>
+            </div>
+          `
+        : ""}
+
+      ${activeMedia.length > 0
+        ? html`
+            <div class="section">
+              <p class="section-label">Now playing</p>
+              ${activeMedia.map(
+                (media) => html`
+                  <glace-media-card
+                    .hass=${this.hass}
+                    .entity=${media}
+                  ></glace-media-card>
+                `
+              )}
+            </div>
+          `
+        : ""}
+
+      ${activeLights.length === 0 && activeMedia.length === 0
+        ? this._renderEmptyState(
+            "Everything looks calm",
+            "This page lights up when rooms are active, media starts playing, or energy needs a quick check."
+          )
+        : ""}
     `;
   }
 

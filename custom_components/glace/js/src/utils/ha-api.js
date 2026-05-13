@@ -40,6 +40,11 @@ export function fetchGlaceConfig(hass) {
   return hass.callWS({ type: "glace/configuration/get" });
 }
 
+/** Fetch only the saved Glace user config. */
+export function fetchGlaceUserConfig(hass) {
+  return hass.callWS({ type: "glace/config/get" });
+}
+
 /** Get current greeting based on time of day. */
 export function getGreeting() {
   const h = new Date().getHours();
