@@ -4,9 +4,8 @@ import { glassStyles } from "../styles/glass.js";
 /**
  * glace-room-card
  *
- * A glass summary card for a single room/area.
- * Shows room name, lights-on count, temperature, and a chevron.
- * Tapping opens the first active entity in a more-info dialog.
+ * A liquid-glass room summary card. Shows room name, active states,
+ * temperature, and a chevron. Parent handles navigation on click.
  */
 class GlaceRoomCard extends LitElement {
   static get properties() {
@@ -25,143 +24,153 @@ class GlaceRoomCard extends LitElement {
         }
 
         .card {
-          padding: 20px;
+          padding: 18px 20px;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
+          display: flex;
+          align-items: center;
+          gap: 14px;
         }
 
         .card:hover {
-          background: var(--glace-surface-hover);
+          background: var(--glace-glass-bg-hover);
         }
 
-        .top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-bottom: 12px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .top-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .icon-circle {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: rgba(137, 206, 255, 0.12);
+        /* Room icon — frosted circle */
+        .room-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 0.5px solid rgba(255, 255, 255, 0.08);
           display: flex;
           align-items: center;
           justify-content: center;
+          flex-shrink: 0;
         }
 
-        .icon-circle ha-icon {
-          --mdc-icon-size: 18px;
-          color: var(--glace-primary);
+        .room-icon ha-icon {
+          --mdc-icon-size: 20px;
+          color: var(--glace-text-secondary);
         }
 
-        .room-name {
-          font-size: 16px;
-          font-weight: 600;
+        .room-icon.has-active ha-icon {
+          color: var(--glace-blue);
         }
 
-        .temp {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--glace-on-surface-dim);
+        .room-icon.has-active {
+          background: rgba(10, 132, 255, 0.12);
+          border-color: rgba(10, 132, 255, 0.15);
         }
 
-        .bottom {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          padding-top: 12px;
-        }
-
-        .stats {
+        /* Room info — name + stats */
+        .room-info {
+          flex: 1;
+          min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 3px;
         }
 
-        .stat {
-          font-size: 12px;
-          color: var(--glace-on-surface-faint);
+        .room-name {
+          font-size: 17px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .stat.active {
-          color: var(--glace-tertiary);
+        .room-status {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .status-item {
+          font-size: 13px;
+          color: var(--glace-text-secondary);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .status-item.active {
+          color: var(--glace-orange);
           font-weight: 500;
         }
 
-        .chevron {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+        .status-item ha-icon {
+          --mdc-icon-size: 13px;
+        }
+
+        /* Right side — temp + chevron */
+        .room-right {
           display: flex;
           align-items: center;
-          justify-content: center;
-          color: var(--glace-on-surface-dim);
+          gap: 10px;
+          flex-shrink: 0;
+        }
+
+        .temp {
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--glace-text-secondary);
+        }
+
+        .chevron {
+          color: var(--glace-text-tertiary);
         }
 
         .chevron ha-icon {
-          --mdc-icon-size: 18px;
+          --mdc-icon-size: 16px;
         }
       `,
     ];
   }
 
   _handleTap() {
-    // Navigation is handled by the parent homepage card via @click
-    // This method is kept for direct usage outside the homepage
+    // Navigation handled by parent homepage card via @click
   }
 
   render() {
     if (!this.room) return html``;
 
     const icon = this.room.icon || "mdi:door";
-    const lightsText =
-      this.room.lightsOn > 0
-        ? `${this.room.lightsOn} Light${this.room.lightsOn !== 1 ? "s" : ""} On`
-        : this.room.lightsTotal > 0
-          ? "All Lights Off"
-          : null;
-    const mediaText =
-      this.room.mediaActive > 0 ? "Media Playing" : null;
+    const hasActive = this.room.lightsOn > 0 || this.room.mediaActive > 0;
 
     return html`
       <div class="glass card" @click=${this._handleTap}>
-        <div class="top">
-          <div class="top-left">
-            <div class="icon-circle">
-              <ha-icon icon=${icon}></ha-icon>
-            </div>
-            <span class="room-name">${this.room.name}</span>
+        <div class="room-icon ${hasActive ? "has-active" : ""}">
+          <ha-icon icon=${icon}></ha-icon>
+        </div>
+        <div class="room-info">
+          <span class="room-name">${this.room.name}</span>
+          <div class="room-status">
+            ${this.room.lightsOn > 0 ? html`
+              <span class="status-item active">
+                <ha-icon icon="mdi:lightbulb-on-outline"></ha-icon>
+                ${this.room.lightsOn}
+              </span>
+            ` : ""}
+            ${this.room.mediaActive > 0 ? html`
+              <span class="status-item active">
+                <ha-icon icon="mdi:play-circle-outline"></ha-icon>
+                Playing
+              </span>
+            ` : ""}
+            ${!hasActive ? html`
+              <span class="status-item">${this.room.entityCount} devices</span>
+            ` : ""}
           </div>
+        </div>
+        <div class="room-right">
           ${this.room.temperature
             ? html`<span class="temp">${this.room.temperature}</span>`
             : ""}
-        </div>
-        <div class="bottom">
-          <div class="stats">
-            ${lightsText
-              ? html`<span class="stat ${this.room.lightsOn > 0 ? "active" : ""}">${lightsText}</span>`
-              : ""}
-            ${mediaText
-              ? html`<span class="stat active">${mediaText}</span>`
-              : ""}
-            ${!lightsText && !mediaText
-              ? html`<span class="stat">${this.room.entityCount} entities</span>`
-              : ""}
-          </div>
-          <div class="chevron">
+          <span class="chevron">
             <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </div>
+          </span>
         </div>
       </div>
     `;

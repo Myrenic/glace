@@ -4,8 +4,8 @@ import { glassStyles } from "../styles/glass.js";
 /**
  * glace-media-card
  *
- * Shows a playing/paused media player with album art and controls.
- * Only rendered by the homepage when a media_player is active.
+ * Shows a playing/paused media player with album art and transport controls.
+ * Only rendered when a media_player is active.
  */
 class GlaceMediaCard extends LitElement {
   static get properties() {
@@ -24,26 +24,33 @@ class GlaceMediaCard extends LitElement {
         }
 
         .container {
-          padding: 16px;
+          padding: 16px 18px;
           display: flex;
           gap: 14px;
           align-items: center;
         }
 
         .artwork {
-          width: 64px;
-          height: 64px;
-          border-radius: var(--glace-radius-sm);
-          background: rgba(255, 255, 255, 0.08);
+          width: 56px;
+          height: 56px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.06);
           flex-shrink: 0;
-          object-fit: cover;
           overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .artwork img {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+
+        .artwork ha-icon {
+          --mdc-icon-size: 24px;
+          color: var(--glace-text-tertiary);
         }
 
         .info {
@@ -57,6 +64,7 @@ class GlaceMediaCard extends LitElement {
         .title {
           font-size: 15px;
           font-weight: 600;
+          letter-spacing: -0.01em;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -64,7 +72,7 @@ class GlaceMediaCard extends LitElement {
 
         .artist {
           font-size: 13px;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -72,35 +80,51 @@ class GlaceMediaCard extends LitElement {
 
         .source {
           font-size: 11px;
-          color: var(--glace-on-surface-faint);
-          margin-top: 2px;
+          color: var(--glace-text-tertiary);
+          margin-top: 1px;
         }
 
         .controls {
           display: flex;
-          gap: 6px;
+          gap: 4px;
           align-items: center;
+          flex-shrink: 0;
         }
 
-        .controls .icon-btn {
+        .ctrl-btn {
           width: 36px;
           height: 36px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.08);
+          border: 0.5px solid rgba(255, 255, 255, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: var(--glace-text-primary);
+          padding: 0;
+          transition: transform 0.3s var(--glace-spring);
         }
 
-        .controls .play-btn {
-          width: 42px;
-          height: 42px;
-          background: var(--glace-primary);
-          color: #101415;
+        .ctrl-btn:active {
+          transform: scale(0.85);
         }
 
-        .controls .play-btn:hover {
-          background: var(--glace-primary);
-          opacity: 0.85;
+        .ctrl-btn ha-icon {
+          --mdc-icon-size: 18px;
         }
 
-        .controls ha-icon {
+        .play-btn {
+          width: 40px;
+          height: 40px;
+          background: var(--glace-blue);
+          border-color: rgba(10, 132, 255, 0.3);
+          box-shadow: 0 2px 12px rgba(10, 132, 255, 0.25);
+        }
+
+        .play-btn ha-icon {
           --mdc-icon-size: 20px;
+          color: #fff;
         }
       `,
     ];
@@ -144,7 +168,7 @@ class GlaceMediaCard extends LitElement {
         <div class="artwork">
           ${artwork
             ? html`<img src=${artwork} alt="" />`
-            : html`<ha-icon icon="mdi:music" style="padding:18px; opacity:0.4;"></ha-icon>`}
+            : html`<ha-icon icon="mdi:music"></ha-icon>`}
         </div>
         <div class="info">
           <span class="title">${title}</span>
@@ -152,13 +176,13 @@ class GlaceMediaCard extends LitElement {
           ${source ? html`<span class="source">${source}</span>` : ""}
         </div>
         <div class="controls">
-          <button class="icon-btn" @click=${this._prev}>
+          <button class="ctrl-btn" @click=${this._prev}>
             <ha-icon icon="mdi:skip-previous"></ha-icon>
           </button>
-          <button class="icon-btn play-btn" @click=${this._playPause}>
+          <button class="ctrl-btn play-btn" @click=${this._playPause}>
             <ha-icon icon=${isPlaying ? "mdi:pause" : "mdi:play"}></ha-icon>
           </button>
-          <button class="icon-btn" @click=${this._next}>
+          <button class="ctrl-btn" @click=${this._next}>
             <ha-icon icon="mdi:skip-next"></ha-icon>
           </button>
         </div>

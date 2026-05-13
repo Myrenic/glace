@@ -4,8 +4,8 @@ import { glassStyles } from "../styles/glass.js";
 /**
  * glace-light-summary
  *
- * Conditionally shown section listing active lights with toggles.
- * Only renders when there are lights to show.
+ * Shows active lights with brightness and toggles.
+ * Only rendered when there are lights on.
  */
 class GlaceLightSummary extends LitElement {
   static get properties() {
@@ -24,60 +24,66 @@ class GlaceLightSummary extends LitElement {
         }
 
         .container {
-          padding: 16px;
+          padding: 16px 0 8px 0;
         }
 
         .header {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          margin-bottom: 12px;
+          gap: 10px;
+          padding: 0 16px 14px 16px;
+          border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
         }
 
-        .header-left {
+        .header-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          background: rgba(255, 159, 10, 0.14);
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: center;
         }
 
-        .header-left ha-icon {
-          color: var(--glace-tertiary);
-          --mdc-icon-size: 22px;
+        .header-icon ha-icon {
+          --mdc-icon-size: 18px;
+          color: var(--glace-orange);
         }
 
-        .count {
-          font-size: 14px;
+        .header-text {
+          font-size: 15px;
           font-weight: 600;
-          color: var(--glace-on-surface);
         }
 
         .light-list {
           display: flex;
           flex-direction: column;
-          gap: 8px;
         }
 
         .light-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 8px 12px;
-          border-radius: var(--glace-radius-sm);
-          background: rgba(255, 255, 255, 0.04);
-          transition: var(--glace-transition);
+          padding: 12px 16px;
+          gap: 12px;
+        }
+
+        .light-row:not(:last-child) {
+          border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
         }
 
         .light-info {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 1px;
           min-width: 0;
           flex: 1;
         }
 
         .light-name {
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 500;
+          letter-spacing: -0.01em;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -85,13 +91,22 @@ class GlaceLightSummary extends LitElement {
 
         .light-area {
           font-size: 12px;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
+        }
+
+        .light-right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
         }
 
         .brightness {
-          font-size: 12px;
-          color: var(--glace-on-surface-dim);
-          margin-right: 12px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--glace-text-secondary);
+          min-width: 32px;
+          text-align: right;
         }
       `,
     ];
@@ -107,10 +122,10 @@ class GlaceLightSummary extends LitElement {
     return html`
       <div class="glass container">
         <div class="header">
-          <div class="header-left">
-            <ha-icon icon="mdi:lightbulb-group"></ha-icon>
-            <span class="count">${this.lights.length} Light${this.lights.length !== 1 ? "s" : ""} On</span>
+          <div class="header-icon">
+            <ha-icon icon="mdi:lightbulb-on-outline"></ha-icon>
           </div>
+          <span class="header-text">${this.lights.length} Light${this.lights.length !== 1 ? "s" : ""} On</span>
         </div>
         <div class="light-list">
           ${this.lights.map(
@@ -122,17 +137,19 @@ class GlaceLightSummary extends LitElement {
                   </span>
                   <span class="light-area">${light.area_name}</span>
                 </div>
-                ${light.attributes?.brightness
-                  ? html`<span class="brightness">
-                      ${Math.round((light.attributes.brightness / 255) * 100)}%
-                    </span>`
-                  : ""}
-                <button
-                  class="toggle ${light.state === "on" ? "on" : "off"}"
-                  @click=${() => this._toggle(light.entity_id)}
-                >
-                  <div class="knob"></div>
-                </button>
+                <div class="light-right">
+                  ${light.attributes?.brightness
+                    ? html`<span class="brightness">
+                        ${Math.round((light.attributes.brightness / 255) * 100)}%
+                      </span>`
+                    : ""}
+                  <button
+                    class="toggle ${light.state === "on" ? "on" : "off"}"
+                    @click=${() => this._toggle(light.entity_id)}
+                  >
+                    <div class="knob"></div>
+                  </button>
+                </div>
               </div>
             `
           )}

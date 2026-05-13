@@ -11,9 +11,9 @@ import { fetchGlaceConfig, getGreeting, getTimeString } from "../utils/ha-api.js
 /**
  * glace-homepage-card
  *
- * The main adaptive homepage. Uses hash-based routing:
- * - No hash → overview with room cards and active sections
- * - #areaId → full room detail view for that area
+ * Adaptive iOS-native homepage. Hash-based routing:
+ * - No hash → overview with rooms + active sections
+ * - #areaId → room detail with domain-grouped entities
  */
 class GlaceHomepageCard extends LitElement {
   static get properties() {
@@ -32,91 +32,71 @@ class GlaceHomepageCard extends LitElement {
       css`
         :host {
           display: block;
-          padding: 16px 20px;
+          padding: 0 20px;
         }
 
-        /* ---- Welcome header ---- */
+        /* ── Welcome Header ── */
         .welcome {
-          padding: 16px 0 8px 0;
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
+          padding: 56px 0 8px 4px;
         }
 
         .welcome .greeting {
-          font-size: 20px;
+          font-size: 16px;
           font-weight: 400;
-          color: var(--glace-on-surface-dim);
-          margin: 0 0 4px 0;
+          color: var(--glace-text-secondary);
+          margin: 0 0 2px 0;
         }
 
         .welcome .time {
-          font-size: 48px;
-          font-weight: 600;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          color: var(--glace-on-surface);
+          font-size: 54px;
+          font-weight: 700;
+          line-height: 1.05;
+          letter-spacing: -0.03em;
+          color: var(--glace-text-primary);
+          margin: 0;
         }
 
+        /* ── Section Spacing ── */
         .section {
-          margin-top: 20px;
+          margin-top: 24px;
+          animation: glace-fade-in 0.5s var(--glace-ease) both;
         }
 
-        .rooms-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
+        .section:nth-child(2) { animation-delay: 0.05s; }
+        .section:nth-child(3) { animation-delay: 0.1s; }
+        .section:nth-child(4) { animation-delay: 0.15s; }
+        .section:nth-child(5) { animation-delay: 0.2s; }
 
-        /* ---- Quick action bar ---- */
+        /* ── Quick Actions ── */
         .quick-actions {
           display: flex;
-          gap: 10px;
-          margin-top: 16px;
+          gap: 8px;
+          margin-top: 20px;
           flex-wrap: wrap;
         }
 
-        .quick-action {
+        /* ── Rooms Grid ── */
+        .rooms-grid {
           display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          border-radius: var(--glace-radius-sm);
-          background: var(--glace-surface);
-          backdrop-filter: blur(var(--glace-blur));
-          border: var(--glace-border);
-          color: var(--glace-on-surface);
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: var(--glace-transition);
-          white-space: nowrap;
+          flex-direction: column;
+          gap: 10px;
         }
 
-        .quick-action:active {
-          transform: scale(0.95);
-          background: var(--glace-surface-active);
-        }
-
-        .quick-action ha-icon {
-          --mdc-icon-size: 18px;
-        }
-
-        /* ---- Room detail view ---- */
+        /* ── Room Detail View ── */
         .room-detail {
-          animation: fadeIn 0.25s ease;
+          animation: glace-slide-up 0.35s var(--glace-ease) both;
         }
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
+        @keyframes glace-slide-up {
+          from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
         .room-header {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 12px 0 16px 0;
+          gap: 14px;
+          padding: 56px 0 20px 0;
         }
 
         .back-btn {
@@ -124,19 +104,22 @@ class GlaceHomepageCard extends LitElement {
           height: 36px;
           border-radius: 50%;
           background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 0.5px solid rgba(255, 255, 255, 0.12);
+          box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.10);
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: var(--glace-on-surface);
-          transition: var(--glace-transition);
+          color: var(--glace-text-primary);
+          transition: transform 0.3s var(--glace-spring);
           padding: 0;
           flex-shrink: 0;
         }
 
         .back-btn:active {
-          transform: scale(0.9);
+          transform: scale(0.85);
         }
 
         .back-btn ha-icon {
@@ -144,13 +127,20 @@ class GlaceHomepageCard extends LitElement {
         }
 
         .room-title {
-          font-size: 24px;
-          font-weight: 600;
+          font-size: 28px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
         }
 
+        /* ── Domain Sections ── */
         .domain-section {
-          margin-bottom: 16px;
+          margin-bottom: 20px;
+          animation: glace-fade-in 0.4s var(--glace-ease) both;
         }
+
+        .domain-section:nth-child(2) { animation-delay: 0.06s; }
+        .domain-section:nth-child(3) { animation-delay: 0.12s; }
+        .domain-section:nth-child(4) { animation-delay: 0.18s; }
 
         .domain-header {
           display: flex;
@@ -160,48 +150,52 @@ class GlaceHomepageCard extends LitElement {
           padding: 0 4px;
         }
 
-        .domain-title {
+        .domain-label {
           font-size: 13px;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.06em;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
         }
 
         .domain-action {
-          font-size: 12px;
-          color: var(--glace-primary);
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--glace-blue);
           cursor: pointer;
           background: none;
           border: none;
-          padding: 4px 8px;
+          padding: 6px 10px;
           border-radius: 8px;
-          transition: var(--glace-transition);
+          transition: opacity 0.2s;
         }
 
         .domain-action:active {
-          opacity: 0.7;
+          opacity: 0.5;
         }
 
+        /* ── Entity List (glass container) ── */
         .entity-list {
           display: flex;
           flex-direction: column;
-          gap: 2px;
         }
 
         .entity-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
-          border-radius: var(--glace-radius-sm);
-          background: rgba(255, 255, 255, 0.04);
-          transition: var(--glace-transition);
+          padding: 14px 16px;
           cursor: pointer;
+          transition: background 0.15s;
+          gap: 12px;
+        }
+
+        .entity-row:not(:last-child) {
+          border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
         }
 
         .entity-row:active {
-          background: rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .entity-left {
@@ -212,14 +206,28 @@ class GlaceHomepageCard extends LitElement {
           min-width: 0;
         }
 
-        .entity-icon {
-          --mdc-icon-size: 20px;
-          color: var(--glace-on-surface-dim);
+        .entity-icon-wrap {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
+          background: rgba(255, 255, 255, 0.06);
         }
 
-        .entity-icon.active {
-          color: var(--glace-tertiary);
+        .entity-icon-wrap.active {
+          background: rgba(255, 159, 10, 0.14);
+        }
+
+        .entity-icon-wrap ha-icon {
+          --mdc-icon-size: 18px;
+          color: var(--glace-text-secondary);
+        }
+
+        .entity-icon-wrap.active ha-icon {
+          color: var(--glace-orange);
         }
 
         .entity-info {
@@ -232,6 +240,7 @@ class GlaceHomepageCard extends LitElement {
         .entity-name {
           font-size: 15px;
           font-weight: 500;
+          letter-spacing: -0.01em;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -239,15 +248,15 @@ class GlaceHomepageCard extends LitElement {
 
         .entity-state-text {
           font-size: 12px;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
         }
 
         .entity-value {
           font-size: 14px;
           font-weight: 500;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
           white-space: nowrap;
-          margin-left: 8px;
+          margin-left: 4px;
         }
       `,
     ];
@@ -312,12 +321,12 @@ class GlaceHomepageCard extends LitElement {
     );
   }
 
-  // ---- Navigation ----
+  // ── Navigation ──
 
   _selectArea(areaId) {
     window.location.hash = areaId;
     this._selectedArea = areaId;
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   _goBack() {
@@ -325,7 +334,7 @@ class GlaceHomepageCard extends LitElement {
     this._selectedArea = null;
   }
 
-  // ---- Service calls ----
+  // ── Service calls ──
 
   _handleAllLightsOff() {
     const areaMap = this._getAreaMap();
@@ -342,9 +351,6 @@ class GlaceHomepageCard extends LitElement {
       this.hass.callService(domain, "toggle", { entity_id: entityId });
     } else if (domain === "media_player") {
       this.hass.callService("media_player", "media_play_pause", { entity_id: entityId });
-    } else if (domain === "climate") {
-      // Open more-info for complex entities
-      this._fireMoreInfo(entityId);
     } else {
       this._fireMoreInfo(entityId);
     }
@@ -352,10 +358,6 @@ class GlaceHomepageCard extends LitElement {
 
   _turnOffDomain(areaId, domain) {
     this.hass.callService(domain, "turn_off", {}, { area_id: [areaId] });
-  }
-
-  _turnOnDomain(areaId, domain) {
-    this.hass.callService(domain, "turn_on", {}, { area_id: [areaId] });
   }
 
   _fireMoreInfo(entityId) {
@@ -366,7 +368,7 @@ class GlaceHomepageCard extends LitElement {
     this.dispatchEvent(event);
   }
 
-  // ---- Entity helpers ----
+  // ── Entity helpers ──
 
   _getAreaEntities(areaId) {
     const areaMap = this._getAreaMap();
@@ -434,7 +436,7 @@ class GlaceHomepageCard extends LitElement {
     return state.state;
   }
 
-  // ---- Render ----
+  // ── Render ──
 
   render() {
     if (!this.hass) return html``;
@@ -451,17 +453,15 @@ class GlaceHomepageCard extends LitElement {
 
     return html`
       <div class="welcome">
-        <div>
-          <p class="greeting">${getGreeting()}</p>
-          <p class="time">${this._time}</p>
-        </div>
+        <p class="greeting">${getGreeting()}</p>
+        <p class="time">${this._time}</p>
       </div>
 
       ${activeLights.length > 0 ? html`
         <div class="quick-actions">
-          <button class="quick-action" @click=${this._handleAllLightsOff}>
+          <button class="pill accent" @click=${this._handleAllLightsOff}>
             <ha-icon icon="mdi:lightbulb-off-outline"></ha-icon>
-            All Lights Off (${activeLights.length})
+            Turn Off ${activeLights.length} Light${activeLights.length !== 1 ? "s" : ""}
           </button>
         </div>
       ` : ""}
@@ -486,7 +486,7 @@ class GlaceHomepageCard extends LitElement {
 
       ${roomSummaries.length > 0 ? html`
         <div class="section">
-          <h3 class="section-title">Rooms</h3>
+          <p class="section-label">Rooms</p>
           <div class="rooms-grid">
             ${roomSummaries.map((room) => html`
               <glace-room-card
@@ -508,31 +508,29 @@ class GlaceHomepageCard extends LitElement {
       return html`
         <div class="room-header">
           <button class="back-btn" @click=${this._goBack}>
-            <ha-icon icon="mdi:arrow-left"></ha-icon>
+            <ha-icon icon="mdi:chevron-left"></ha-icon>
           </button>
-          <span class="room-title">Room not found</span>
+          <span class="room-title">Not found</span>
         </div>
       `;
     }
 
     const entities = area.entities;
     const groups = this._groupByDomain(entities);
-    const areaName = area.name;
-    const areaIcon = area.icon || "mdi:door";
 
     return html`
       <div class="room-detail">
         <div class="room-header">
           <button class="back-btn" @click=${this._goBack}>
-            <ha-icon icon="mdi:arrow-left"></ha-icon>
+            <ha-icon icon="mdi:chevron-left"></ha-icon>
           </button>
-          <span class="room-title">${areaName}</span>
+          <span class="room-title">${area.name}</span>
         </div>
 
         ${Object.entries(groups).map(([domain, domainEntities]) => html`
           <div class="domain-section">
             <div class="domain-header">
-              <span class="domain-title">${domain.replace(/_/g, " ")}</span>
+              <span class="domain-label">${domain.replace(/_/g, " ")}</span>
               ${this._isToggleable(domain) ? html`
                 <button class="domain-action" @click=${() => this._turnOffDomain(this._selectedArea, domain)}>
                   All Off
@@ -543,20 +541,20 @@ class GlaceHomepageCard extends LitElement {
               ${domainEntities.map((entity) => {
                 const isOn = this._isActive(entity.state);
                 return html`
-                  <div class="entity-row" @click=${() => this._toggleEntity(entity.entity_id)}>
+                  <div class="entity-row" @click=${() => this._fireMoreInfo(entity.entity_id)}>
                     <div class="entity-left">
-                      <ha-icon
-                        class="entity-icon ${isOn ? "active" : ""}"
-                        icon=${entity.attributes?.icon || this._getDomainIcon(domain)}
-                      ></ha-icon>
+                      <div class="entity-icon-wrap ${isOn ? "active" : ""}">
+                        <ha-icon
+                          icon=${entity.attributes?.icon || this._getDomainIcon(domain)}
+                        ></ha-icon>
+                      </div>
                       <div class="entity-info">
                         <span class="entity-name">
                           ${entity.attributes?.friendly_name || entity.name || entity.entity_id}
                         </span>
-                        <span class="entity-state-text">${entity.state}</span>
+                        <span class="entity-state-text">${this._getEntityDisplayState(entity)}</span>
                       </div>
                     </div>
-                    <span class="entity-value">${this._getEntityDisplayState(entity)}</span>
                     ${this._isToggleable(domain) ? html`
                       <button
                         class="toggle ${isOn ? "on" : "off"}"
@@ -564,7 +562,9 @@ class GlaceHomepageCard extends LitElement {
                       >
                         <div class="knob"></div>
                       </button>
-                    ` : ""}
+                    ` : html`
+                      <span class="entity-value">${this._getEntityDisplayState(entity)}</span>
+                    `}
                   </div>
                 `;
               })}

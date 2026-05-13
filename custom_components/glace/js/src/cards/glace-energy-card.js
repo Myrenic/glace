@@ -4,9 +4,9 @@ import { glassStyles } from "../styles/glass.js";
 /**
  * glace-energy-card
  *
- * Shows an energy price alert when prices are high.
- * Auto-discovers sensor.electricity_price or similar entities.
- * Hides itself when there is nothing noteworthy to show.
+ * Auto-discovers energy price sensors. Shows current rate
+ * with high-price alert styling when threshold is exceeded.
+ * Hides when no energy entity exists.
  */
 class GlaceEnergyCard extends LitElement {
   static get properties() {
@@ -24,16 +24,16 @@ class GlaceEnergyCard extends LitElement {
         }
 
         .container {
-          padding: 16px;
+          padding: 16px 18px;
           display: flex;
           align-items: center;
           gap: 14px;
         }
 
         .icon-wrap {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -41,17 +41,23 @@ class GlaceEnergyCard extends LitElement {
         }
 
         .icon-wrap.high {
-          background: rgba(255, 180, 171, 0.18);
-          color: var(--glace-error);
+          background: rgba(255, 69, 58, 0.14);
+        }
+
+        .icon-wrap.high ha-icon {
+          color: var(--glace-red);
         }
 
         .icon-wrap.normal {
-          background: rgba(78, 222, 163, 0.14);
-          color: var(--glace-secondary);
+          background: rgba(48, 209, 88, 0.12);
+        }
+
+        .icon-wrap.normal ha-icon {
+          color: var(--glace-green);
         }
 
         .icon-wrap ha-icon {
-          --mdc-icon-size: 22px;
+          --mdc-icon-size: 20px;
         }
 
         .info {
@@ -64,17 +70,35 @@ class GlaceEnergyCard extends LitElement {
         .title {
           font-size: 15px;
           font-weight: 600;
+          letter-spacing: -0.01em;
         }
 
         .subtitle {
           font-size: 13px;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-text-secondary);
         }
 
         .price {
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 700;
+          letter-spacing: -0.02em;
           text-align: right;
+          flex-shrink: 0;
+        }
+
+        .price.high {
+          color: var(--glace-red);
+        }
+
+        .price.normal {
+          color: var(--glace-text-primary);
+        }
+
+        .unit {
+          font-size: 13px;
+          font-weight: 400;
+          color: var(--glace-text-secondary);
+          margin-left: 2px;
         }
       `,
     ];
@@ -83,7 +107,6 @@ class GlaceEnergyCard extends LitElement {
   _findEnergyEntity() {
     if (!this.hass) return null;
 
-    // Look for common energy price entity patterns
     const candidates = [
       "sensor.electricity_price",
       "sensor.energy_price",
@@ -97,7 +120,6 @@ class GlaceEnergyCard extends LitElement {
       if (this.hass.states[id]) return this.hass.states[id];
     }
 
-    // Fallback: search for entities with 'price' and 'energy' in the id
     for (const [id, state] of Object.entries(this.hass.states)) {
       if (
         id.startsWith("sensor.") &&
@@ -113,19 +135,16 @@ class GlaceEnergyCard extends LitElement {
 
   render() {
     const entity = this._findEnergyEntity();
-    if (!entity) return html``; // No energy entity → hide
+    if (!entity) return html``;
 
     const price = parseFloat(entity.state);
     if (isNaN(price)) return html``;
 
     const unit = entity.attributes?.unit_of_measurement || "";
     const friendlyName = entity.attributes?.friendly_name || "Energy Price";
-
-    // Determine threshold — user can override via HA customize
     const threshold = entity.attributes?.glace_high_threshold || null;
     const isHigh = threshold ? price > threshold : false;
 
-    // Only show when price is high or always show with neutral style
     return html`
       <div class="glass container">
         <div class="icon-wrap ${isHigh ? "high" : "normal"}">
@@ -135,7 +154,9 @@ class GlaceEnergyCard extends LitElement {
           <span class="title">${friendlyName}</span>
           <span class="subtitle">${isHigh ? "Price is high" : "Current rate"}</span>
         </div>
-        <span class="price ${isHigh ? "tertiary" : ""}">${price} ${unit}</span>
+        <span class="price ${isHigh ? "high" : "normal"}">
+          ${price}<span class="unit">${unit}</span>
+        </span>
       </div>
     `;
   }
