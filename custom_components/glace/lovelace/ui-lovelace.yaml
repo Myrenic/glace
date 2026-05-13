@@ -1,2 +1,7 @@
 views:
-  !include_dir_merge_list views/
+  - title: Home
+    icon: mdi:home
+    path: home
+    type: custom:glace-layout
+    cards:
+      - type: custom:glace-homepage-card
