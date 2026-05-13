@@ -6,6 +6,7 @@ import { glassStyles } from "../styles/glass.js";
  *
  * A glass summary card for a single room/area.
  * Shows room name, lights-on count, temperature, and a chevron.
+ * Tapping opens the first active entity in a more-info dialog.
  */
 class GlaceRoomCard extends LitElement {
   static get properties() {
@@ -26,6 +27,11 @@ class GlaceRoomCard extends LitElement {
         .card {
           padding: 20px;
           cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .card:hover {
+          background: var(--glace-surface-hover);
         }
 
         .top {
@@ -33,17 +39,28 @@ class GlaceRoomCard extends LitElement {
           justify-content: space-between;
           align-items: center;
           padding-bottom: 12px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .top-left {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
-        .top-left ha-icon {
-          --mdc-icon-size: 22px;
+        .icon-circle {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(137, 206, 255, 0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .icon-circle ha-icon {
+          --mdc-icon-size: 18px;
+          color: var(--glace-primary);
         }
 
         .room-name {
@@ -72,26 +89,75 @@ class GlaceRoomCard extends LitElement {
 
         .stat {
           font-size: 12px;
-          color: var(--glace-on-surface-dim);
+          color: var(--glace-on-surface-faint);
         }
 
         .stat.active {
-          color: var(--glace-on-surface);
+          color: var(--glace-tertiary);
+          font-weight: 500;
+        }
+
+        .chevron {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--glace-on-surface-dim);
+        }
+
+        .chevron ha-icon {
+          --mdc-icon-size: 18px;
         }
       `,
     ];
   }
 
-  _navigate() {
-    // Navigate to the room detail view
-    const event = new CustomEvent("hass-more-info", {
-      bubbles: true,
-      composed: true,
-      detail: { entityId: null },
-    });
-    // For now, fire a custom event; room drill-down navigation is
-    // implemented in Phase 5.
-    this.dispatchEvent(event);
+  _handleTap() {
+    if (!this.hass || !this.room) return;
+
+    // Find the first entity in this area to show more-info
+    const states = this.hass.states;
+    const entities = this.hass.entities || {};
+    const devices = this.hass.devices || {};
+
+    for (const [entityId, entry] of Object.entries(entities)) {
+      const areaId =
+        entry.area_id ||
+        (entry.device_id && devices[entry.device_id]?.area_id);
+      if (areaId === this.room.id) {
+        // Fire a more-info event for this area's first light or entity
+        const domain = entityId.split(".")[0];
+        if (["light", "switch", "climate", "media_player"].includes(domain)) {
+          const event = new CustomEvent("hass-more-info", {
+            bubbles: true,
+            composed: true,
+            detail: { entityId },
+          });
+          this.dispatchEvent(event);
+          return;
+        }
+      }
+    }
+
+    // Fallback: open any entity in the area
+    for (const [entityId, entry] of Object.entries(entities)) {
+      const areaId =
+        entry.area_id ||
+        (entry.device_id && devices[entry.device_id]?.area_id);
+      if (areaId === this.room.id) {
+        const event = new CustomEvent("hass-more-info", {
+          bubbles: true,
+          composed: true,
+          detail: { entityId },
+        });
+        this.dispatchEvent(event);
+        return;
+      }
+    }
   }
 
   render() {
@@ -101,15 +167,19 @@ class GlaceRoomCard extends LitElement {
     const lightsText =
       this.room.lightsOn > 0
         ? `${this.room.lightsOn} Light${this.room.lightsOn !== 1 ? "s" : ""} On`
-        : "All Lights Off";
+        : this.room.lightsTotal > 0
+          ? "All Lights Off"
+          : null;
     const mediaText =
       this.room.mediaActive > 0 ? "Media Playing" : null;
 
     return html`
-      <div class="glass card" @click=${this._navigate}>
+      <div class="glass card" @click=${this._handleTap}>
         <div class="top">
           <div class="top-left">
-            <ha-icon icon=${icon}></ha-icon>
+            <div class="icon-circle">
+              <ha-icon icon=${icon}></ha-icon>
+            </div>
             <span class="room-name">${this.room.name}</span>
           </div>
           ${this.room.temperature
@@ -118,16 +188,19 @@ class GlaceRoomCard extends LitElement {
         </div>
         <div class="bottom">
           <div class="stats">
-            <span class="stat ${this.room.lightsOn > 0 ? "active" : ""}">
-              ${lightsText}
-            </span>
+            ${lightsText
+              ? html`<span class="stat ${this.room.lightsOn > 0 ? "active" : ""}">${lightsText}</span>`
+              : ""}
             ${mediaText
               ? html`<span class="stat active">${mediaText}</span>`
               : ""}
+            ${!lightsText && !mediaText
+              ? html`<span class="stat">${this.room.entityCount} entities</span>`
+              : ""}
           </div>
-          <button class="icon-btn" @click=${this._navigate}>
+          <div class="chevron">
             <ha-icon icon="mdi:chevron-right"></ha-icon>
-          </button>
+          </div>
         </div>
       </div>
     `;

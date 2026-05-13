@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 
 /**
  * Custom Lovelace layout card for Glace.
- * Renders child cards inside a full-bleed dark container with proper spacing.
+ * Renders child cards inside a full-bleed liquid-glass container.
  */
 class GlaceLayout extends LitElement {
   static get properties() {
@@ -18,9 +18,51 @@ class GlaceLayout extends LitElement {
       :host {
         display: block;
         min-height: 100vh;
-        background: var(--primary-background-color, #101415);
+        background: linear-gradient(
+          160deg,
+          #0a0e12 0%,
+          #101820 25%,
+          #0c1418 50%,
+          #111a20 75%,
+          #0a1015 100%
+        );
+        background-attachment: fixed;
         padding: 0;
         margin: 0;
+        position: relative;
+      }
+
+      /* Subtle ambient glow spots */
+      :host::before {
+        content: "";
+        position: fixed;
+        top: -20%;
+        right: -10%;
+        width: 60%;
+        height: 50%;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(137, 206, 255, 0.06) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      :host::after {
+        content: "";
+        position: fixed;
+        bottom: -10%;
+        left: -15%;
+        width: 50%;
+        height: 45%;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(78, 222, 163, 0.04) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
       }
 
       .layout {
@@ -28,6 +70,8 @@ class GlaceLayout extends LitElement {
         flex-direction: column;
         min-height: 100vh;
         padding: 0 0 100px 0;
+        position: relative;
+        z-index: 1;
       }
     `;
   }

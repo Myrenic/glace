@@ -30,11 +30,11 @@ class GlaceHomepageCard extends LitElement {
       css`
         :host {
           display: block;
-          padding: 0 20px;
+          padding: 16px 20px;
         }
 
         .welcome {
-          padding: 24px 0 8px 0;
+          padding: 16px 0 8px 0;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
